@@ -24,7 +24,7 @@ const style = StyleSheet.create({
   },
   navigation: {
     flex:2, 
-    backgroundColor:'rgba(242,242,242,1)'
+    backgroundColor:'red',
   },
   body: {
     flex: 9,
