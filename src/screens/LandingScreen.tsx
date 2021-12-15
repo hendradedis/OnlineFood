@@ -1,41 +1,61 @@
 import React, {useState, useReducer, useEffect} from "react";
 import {View, Text, StyleSheet, Image, Dimensions} from "react-native"
 
+import {useNavigation} from '../utils'
 const screenWidth =  Dimensions.get('screen').width
 
 import * as Location from 'expo-location'
 
 export const LandingScreen = () => {
+  
 
+  const {navigate} = useNavigation()
   const [errorMsg, setErrorMsg] = useState("")
   const [address, setAddress] = useState<Location.LocationGeocodedAddress>()
 
   const [displayAddress, setDisplayAddress] = useState("waiting for current location")
 
   useEffect(() => {
+
     (async () => {
-      let {status} =  await Location.requestBackgroundPermissionsAsync()
 
-      if( status !== 'granted') {
-        setErrorMsg("permision accress is not granted")
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      console.log("status", status)
+
+      if (status !== 'granted'){
+          setErrorMsg('Permission to access location is not granted')
       }
 
-      let location: any = await Location.getCurrentPositionAsync({})
-      const {coords} = location
+      let location = await Location.getCurrentPositionAsync({});
+      console.log("location", JSON.stringify(location))
 
-      if(coords) {
-        const {latitude, longitude} = coords
+      const { coords } = location
 
-        let addressResponse : any = await Location.reverseGeocodeAsync({longitude, latitude})
+      if(coords){
 
-        for(let item of addressResponse){
-          setAddress(item)
-          let currentAddress = `${item.name}, ${item.street}, ${item.postalCode}`
-          setDisplayAddress(currentAddress)
-          return;
-        }
+          const { latitude, longitude} = coords;
+
+          let addressResponse: any = await Location.reverseGeocodeAsync({ latitude, longitude})
+
+          for(let item of addressResponse){
+              setAddress(item)
+              // onUpdateLocation(item)
+              let currentAddress = `${item.name},${item.street}, ${item.postalCode}, ${item.country}`
+              setDisplayAddress(currentAddress)
+
+              if(currentAddress.length > 0){
+                  setTimeout(() =>{
+                      navigate('homeStack')
+                  }, 2000)
+              }
+              return;
+          }
+      }else{
+          console.log("something wrong from location")
       }
-    })
+
+  })();
+
   }, [])
 
 
@@ -92,7 +112,9 @@ const style = StyleSheet.create({
   addressText: {
     fontSize:20,
     fontWeight:'200',
-    color:'#4f4f4f'
+    color:'#4f4f4f',
+    paddingHorizontal:25,
+    textAlign:'center'
   },
   footer: {
     flex:1,
